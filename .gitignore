@@ -1,0 +1,79 @@
+# ------------------------
+# Node.js (Backend + Frontend)
+# ------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log
+
+# ------------------------
+# Build outputs
+# ------------------------
+dist/
+build/
+.cache/
+coverage/
+.vite/
+
+# ------------------------
+# TypeScript
+# ------------------------
+*.tsbuildinfo
+
+# ------------------------
+# Python (ML-service)
+# ------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.egg-info/
+.env/
+.venv/
+env/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# ------------------------
+# Prisma
+# ------------------------
+prisma/dev.db
+prisma/dev.db-journal
+
+# ------------------------
+# Environment
+# ------------------------
+.env
+.env.*.local
+!.env.example
+
+# ------------------------
+# VSCode & IDEs
+# ------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# ------------------------
+# Docker
+# ------------------------
+*.pid
+*.seed
+.docker/
+docker-compose.override.yml
+
+# ------------------------
+# Logs
+# ------------------------
+logs/
+*.log
+*.out
+*.err
