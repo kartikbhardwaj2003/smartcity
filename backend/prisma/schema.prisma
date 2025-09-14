@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  passwordHash String   // 👈 Final field
+  role        String   @default("VIEWER")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Sensor {
+  id         String   @id @default(uuid())
+  name       String
+  type       String
+  location   Json?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  readings   SensorReading[]
+  alerts     Alert[]
+  @@index([type])
+}
+
+model SensorReading {
+  id         String   @id @default(uuid())
+  sensor     Sensor   @relation(fields: [sensorId], references: [id])
+  sensorId   String
+  timestamp  DateTime @default(now())
+  value      Float?
+  rawPayload Json?
+  @@index([sensorId, timestamp])
+}
+
+model Alert {
+  id         String   @id @default(uuid())
+  sensor     Sensor?  @relation(fields: [sensorId], references: [id])
+  sensorId   String?
+  level      String
+  message    String
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+  metadata   Json?
+  resolvedBy String?
+  @@index([sensorId, level])
+}

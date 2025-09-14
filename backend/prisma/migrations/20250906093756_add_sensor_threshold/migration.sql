@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Sensor" ADD COLUMN     "threshold" DOUBLE PRECISION NOT NULL DEFAULT 75.0;

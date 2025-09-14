@@ -1,0 +1,59 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    container_name: smartcity_db
+    restart: always
+    environment:
+      POSTGRES_USER: smartcity
+      POSTGRES_PASSWORD: smartcity
+      POSTGRES_DB: smartcitydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: smartcity_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+
+  backend:
+    build: ./backend
+    container_name: smartcity_backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://smartcity:smartcity@postgres:5432/smartcitydb
+      JWT_SECRET: supersecret
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    container_name: smartcity_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+
+  ml-service:
+    build: ./ml-service
+    container_name: smartcity_ml
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ml-service:/app
+
+volumes:
+  pgdata:
