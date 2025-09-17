@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../services/api";
+import { Activity, Wind, Trash2, Car, Bell } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -8,105 +8,156 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
 } from "recharts";
 
+type StatCardProps = {
+  title: string;
+  value: string | number;
+  icon: JSX.Element;
+  color: string;
+};
+
+function StatCard({ title, value, icon, color }: StatCardProps) {
+  return (
+    <div
+      className={`p-5 border-l-4 ${color} bg-white rounded-lg shadow hover:shadow-lg transition`}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-500">{title}</p>
+          <p className="text-2xl font-bold">{value}</p>
+        </div>
+        <div className="p-3 bg-gray-100 rounded-full">{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+// Dummy data for charts
+const trafficData = [
+  { time: "6 AM", vehicles: 40 },
+  { time: "9 AM", vehicles: 90 },
+  { time: "12 PM", vehicles: 60 },
+  { time: "3 PM", vehicles: 70 },
+  { time: "6 PM", vehicles: 120 },
+  { time: "9 PM", vehicles: 50 },
+];
+
+const airData = [
+  { day: "Mon", aqi: 80 },
+  { day: "Tue", aqi: 95 },
+  { day: "Wed", aqi: 70 },
+  { day: "Thu", aqi: 110 },
+  { day: "Fri", aqi: 100 },
+];
+
+const energyData = [
+  { day: "Mon", usage: 200 },
+  { day: "Tue", usage: 250 },
+  { day: "Wed", usage: 180 },
+  { day: "Thu", usage: 300 },
+  { day: "Fri", usage: 220 },
+];
+
 export default function Dashboard() {
-  const [sensors, setSensors] = useState<any[]>([]);
-  const [alerts, setAlerts] = useState<any[]>([]);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
-    try {
-      const s = await api.get("/sensors");
-      const a = await api.get("/alerts");
-      setSensors(s.data ?? []);
-      setAlerts(a.data ?? []);
-    } catch (err) {
-      console.error("Failed to load dashboard data", err);
-    }
-  }
-
-  const activeAlerts = alerts.filter((a) => !a.resolvedAt).length;
-  const resolvedAlerts = alerts.filter((a) => a.resolvedAt).length;
-
-  // Dummy trend chart data (replace with sensor readings later)
-  const chartData = [
-    { time: "08:00", air: 50, traffic: 30 },
-    { time: "10:00", air: 70, traffic: 60 },
-    { time: "12:00", air: 90, traffic: 80 },
-    { time: "14:00", air: 120, traffic: 110 },
-    { time: "16:00", air: 100, traffic: 70 },
-  ];
+  const [stats] = useState({
+    airQuality: 95,
+    traffic: "Moderate",
+    waste: "75%",
+    energy: "Normal",
+    alerts: 2,
+  });
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">📊 Smart City Dashboard</h1>
+    <div className="p-6 bg-gradient-to-br from-gray-50 via-white to-blue-50 min-h-screen">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">City Dashboard</h1>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-5 rounded-xl shadow-md">
-          <h3 className="text-sm text-gray-500">Total Sensors</h3>
-          <p className="text-2xl font-bold text-blue-600">{sensors.length}</p>
-        </div>
-        <div className="bg-white p-5 rounded-xl shadow-md">
-          <h3 className="text-sm text-gray-500">Active Alerts</h3>
-          <p className="text-2xl font-bold text-red-600">{activeAlerts}</p>
-        </div>
-        <div className="bg-white p-5 rounded-xl shadow-md">
-          <h3 className="text-sm text-gray-500">Resolved Alerts</h3>
-          <p className="text-2xl font-bold text-green-600">{resolvedAlerts}</p>
-        </div>
-        <div className="bg-white p-5 rounded-xl shadow-md">
-          <h3 className="text-sm text-gray-500">System Uptime</h3>
-          <p className="text-2xl font-bold text-purple-600">99.9%</p>
-        </div>
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <StatCard
+          title="Air Quality Index"
+          value={stats.airQuality}
+          color="border-green-500"
+          icon={<Wind className="h-6 w-6 text-green-600" />}
+        />
+        <StatCard
+          title="Traffic Status"
+          value={stats.traffic}
+          color="border-yellow-500"
+          icon={<Car className="h-6 w-6 text-yellow-600" />}
+        />
+        <StatCard
+          title="Waste Collection"
+          value={stats.waste}
+          color="border-blue-500"
+          icon={<Trash2 className="h-6 w-6 text-blue-600" />}
+        />
+        <StatCard
+          title="Energy Usage"
+          value={stats.energy}
+          color="border-purple-500"
+          icon={<Activity className="h-6 w-6 text-purple-600" />}
+        />
+        <StatCard
+          title="Active Alerts"
+          value={stats.alerts}
+          color="border-red-500"
+          icon={<Bell className="h-6 w-6 text-red-600" />}
+        />
       </div>
 
-      {/* Trend Chart */}
-      <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-        <h2 className="text-xl font-semibold mb-4">Air Quality & Traffic Trend</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData}>
-            <Line type="monotone" dataKey="air" stroke="#ef4444" name="Air Quality" />
-            <Line type="monotone" dataKey="traffic" stroke="#3b82f6" name="Traffic" />
-            <CartesianGrid stroke="#ccc" />
-            <XAxis dataKey="time" />
-            <YAxis />
-            <Tooltip />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Traffic Line Chart */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">Traffic Trends</h2>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={trafficData}>
+              <CartesianGrid stroke="#ccc" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="vehicles" stroke="#f59e0b" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
-      {/* Alerts Preview */}
-      <div className="bg-white p-6 rounded-xl shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Recent Alerts</h2>
-        {alerts.length === 0 && <div className="text-gray-500">No alerts yet</div>}
-        <ul className="divide-y">
-          {alerts.slice(0, 5).map((a) => (
-            <li key={a.id} className="py-3 flex justify-between items-center">
-              <div>
-                <span
-                  className={`px-2 py-1 rounded text-xs font-semibold ${
-                    a.level === "CRITICAL"
-                      ? "bg-red-100 text-red-700"
-                      : a.level === "WARNING"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-blue-100 text-blue-700"
-                  }`}
-                >
-                  {a.level}
-                </span>
-                <p className="mt-1">{a.message}</p>
-              </div>
-              <span className="text-xs text-gray-500">
-                {new Date(a.createdAt).toLocaleString()}
-              </span>
-            </li>
-          ))}
-        </ul>
+        {/* Air Quality Area Chart */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">Air Quality (AQI)</h2>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={airData}>
+              <CartesianGrid stroke="#ccc" />
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Area
+                type="monotone"
+                dataKey="aqi"
+                stroke="#10b981"
+                fill="#a7f3d0"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Energy Usage Bar Chart */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">Energy Usage</h2>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={energyData}>
+              <CartesianGrid stroke="#ccc" />
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="usage" fill="#6366f1" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

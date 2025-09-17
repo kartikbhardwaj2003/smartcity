@@ -1,102 +1,119 @@
-import { useEffect, useState } from "react";
-import api from "../services/api";
+import { useState } from "react";
+import { ShieldAlert, AlertTriangle, Info, CheckCircle } from "lucide-react";
 
 type AlertItem = {
   id: string;
-  level: string;
+  level: "CRITICAL" | "WARNING" | "INFO";
   message: string;
   createdAt: string;
-  resolvedAt?: string | null;
 };
 
 export default function Alerts() {
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [alerts, setAlerts] = useState<AlertItem[]>([
+    {
+      id: "1",
+      level: "CRITICAL",
+      message: "Air pollution above safe limit",
+      createdAt: "2025-09-13T10:00:00Z",
+    },
+    {
+      id: "2",
+      level: "WARNING",
+      message: "Traffic congestion in Zone B",
+      createdAt: "2025-09-13T09:45:00Z",
+    },
+    {
+      id: "3",
+      level: "INFO",
+      message: "Scheduled waste collection in Zone C",
+      createdAt: "2025-09-13T08:30:00Z",
+    },
+  ]);
 
-  useEffect(() => {
-    load();
-  }, []);
+  const [filter, setFilter] = useState<"ALL" | "CRITICAL" | "WARNING" | "INFO">(
+    "ALL"
+  );
 
-  async function load() {
-    try {
-      const res = await api.get("/alerts");
-      setAlerts(res.data ?? []);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load alerts");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const resolveAlert = (id: string) => {
+    setAlerts((prev) => prev.filter((a) => a.id !== id));
+  };
 
-  async function resolveAlert(id: string) {
-    try {
-      const res = await api.put(`/alerts/${id}/resolve`, { resolvedBy: "Admin User" });
-      setAlerts((s) => s.map((a) => (a.id === id ? res.data.alert : a)));
-    } catch (err) {
-      console.error(err);
-      alert("Resolve failed");
-    }
-  }
+  const filteredAlerts =
+    filter === "ALL" ? alerts : alerts.filter((a) => a.level === filter);
+
+  const levelConfig: Record<
+    AlertItem["level"],
+    { color: string; icon: JSX.Element }
+  > = {
+    CRITICAL: {
+      color: "border-red-500 bg-red-50",
+      icon: <ShieldAlert className="text-red-500 h-5 w-5" />,
+    },
+    WARNING: {
+      color: "border-yellow-500 bg-yellow-50",
+      icon: <AlertTriangle className="text-yellow-500 h-5 w-5" />,
+    },
+    INFO: {
+      color: "border-blue-500 bg-blue-50",
+      icon: <Info className="text-blue-500 h-5 w-5" />,
+    },
+  };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Alerts</h1>
+    <div className="p-6 bg-gradient-to-br from-gray-50 via-white to-blue-50 min-h-screen">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">System Alerts</h1>
 
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <div className="overflow-x-auto bg-white shadow rounded-lg">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100 text-left">
-              <tr>
-                <th className="p-3">Level</th>
-                <th className="p-3">Message</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Created At</th>
-                <th className="p-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alerts.map((a) => (
-                <tr key={a.id} className="border-b">
-                  <td className="p-3 font-medium">{a.level}</td>
-                  <td className="p-3">{a.message}</td>
-                  <td className="p-3">
-                    {a.resolvedAt ? (
-                      <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
-                        Resolved
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-700">
-                        Active
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3">{new Date(a.createdAt).toLocaleString()}</td>
-                  <td className="p-3 text-center">
-                    {!a.resolvedAt && (
-                      <button
-                        onClick={() => resolveAlert(a.id)}
-                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                      >
-                        Resolve
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {alerts.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="p-3 text-center text-gray-500">
-                    No alerts available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {/* Filters */}
+      <div className="flex gap-3 mb-6">
+        {["ALL", "CRITICAL", "WARNING", "INFO"].map((f) => (
+          <button
+            key={f}
+            onClick={() =>
+              setFilter(f as "ALL" | "CRITICAL" | "WARNING" | "INFO")
+            }
+            className={`px-4 py-2 rounded ${
+              filter === f
+                ? "bg-blue-600 text-white"
+                : "bg-white border text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* Alerts List */}
+      <div className="space-y-4">
+        {filteredAlerts.length > 0 ? (
+          filteredAlerts.map((alert) => (
+            <div
+              key={alert.id}
+              className={`border-l-4 ${levelConfig[alert.level].color} rounded-lg shadow p-4 flex justify-between items-start`}
+            >
+              <div className="flex gap-3">
+                {levelConfig[alert.level].icon}
+                <div>
+                  <p className="font-semibold">{alert.message}</p>
+                  <p className="text-xs text-gray-600">
+                    {new Date(alert.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => resolveAlert(alert.id)}
+                className="ml-4 px-3 py-1 text-sm bg-green-100 text-green-700 border border-green-400 rounded hover:bg-green-200"
+              >
+                <CheckCircle className="inline h-4 w-4 mr-1" />
+                Resolve
+              </button>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500 text-center text-sm mt-10">
+            No {filter !== "ALL" ? filter.toLowerCase() : ""} alerts 🎉
+          </p>
+        )}
+      </div>
     </div>
   );
 }
